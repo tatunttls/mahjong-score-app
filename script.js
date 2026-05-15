@@ -181,17 +181,35 @@ function switchTab(tab) {
 }
 function scrollToTopSoon() { setTimeout(() => { const el = document.getElementById("scrollArea"); if (el) el.scrollTop = 0; }, 0); }
 function openNewDatePicker() {
+  const row = document.getElementById("newDateRow");
   const picker = document.getElementById("newDatePicker");
+  if (!row || !picker) return;
+  row.hidden = false;
   picker.value = selectedDate || todayString();
-  if (picker.showPicker) picker.showPicker(); else picker.click();
+
+  // iPhone Safariでは非表示inputのshowPickerが反応しないことがあるため、
+  // 日付入力欄を画面内に表示してからフォーカスする。
+  setTimeout(() => {
+    try {
+      picker.focus({ preventScroll: true });
+      if (picker.showPicker) picker.showPicker();
+    } catch (e) {
+      picker.focus();
+    }
+  }, 0);
 }
-function createDateSheet(date) {
+function closeNewDatePicker() {
+  const row = document.getElementById("newDateRow");
   const picker = document.getElementById("newDatePicker");
   if (picker) {
     picker.blur();
-    picker.style.display = "none";
-    setTimeout(() => { picker.style.display = ""; }, 80);
+    picker.value = "";
   }
+  if (row) row.hidden = true;
+}
+function createDateSheet(date) {
+  const picker = document.getElementById("newDatePicker");
+  if (picker) picker.blur();
   if (document.activeElement && typeof document.activeElement.blur === "function") document.activeElement.blur();
   if (!date) return;
   selectedDate = date;
@@ -201,6 +219,7 @@ function createDateSheet(date) {
     games.push({ id: Date.now(), createdAt: Date.now(), date, players: names.map(name => ({ name, score: "" })) });
     saveGames({ immediate: true });
   }
+  closeNewDatePicker();
   switchTab("input");
   renderAll();
   scrollToTopSoon();

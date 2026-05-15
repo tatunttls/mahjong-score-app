@@ -1070,12 +1070,32 @@ html, body {
   white-space: nowrap;
 }
 
-.hidden-date {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
+.new-date-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 5px;
+  align-items: center;
+  padding-top: 2px;
+}
+
+.new-date-row[hidden] {
+  display: none !important;
+}
+
+.new-date-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.date-create-button {
+  background: var(--accent-dark);
+  white-space: nowrap;
+}
+
+.date-cancel-button {
+  background: #667085;
+  white-space: nowrap;
 }
 
 .date-chip {
