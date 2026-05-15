@@ -1170,3 +1170,5 @@ html, body {
     right: 0;
   }
 }
+
+.build-badge{font-size:11px;color:#64748b;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:2px 7px;margin-left:6px;white-space:nowrap;}

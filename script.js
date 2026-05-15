@@ -1,5 +1,6 @@
 const ORIGIN_POINT = 30000;
 const TOTAL_POINT = 100000;
+const BUILD_VERSION = "v18";
 
 let games = JSON.parse(localStorage.getItem("mahjongGames")) || [];
 let dateRates = JSON.parse(localStorage.getItem("mahjongDateRates")) || {};
@@ -120,13 +121,24 @@ function todayString() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
+function sortDatesDesc(dates) {
+  return [...dates].filter(Boolean).sort((a, b) => String(b).localeCompare(String(a)));
+}
+function sortDatesAsc(dates) {
+  return [...dates].sort((a, b) => String(a).localeCompare(String(b)));
+}
+function formatDateJapanese(date) {
+  const match = String(date || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return String(date || "");
+  return `${match[1]}年${match[2]}月${match[3]}日`;
+}
 function uniqueDates() {
-  return [...new Set(games.map(g => g.date || todayString()))].sort();
+  return sortDatesDesc([...new Set(games.map(g => g.date || todayString()))]);
 }
 function ensureSelectedDate() {
   games = normalizeGames(games);
   const dates = uniqueDates();
-  if (!selectedDate || !dates.includes(selectedDate)) selectedDate = dates[dates.length - 1] || todayString();
+  if (!selectedDate || !dates.includes(selectedDate)) selectedDate = dates[0] || todayString();
   localStorage.setItem("mahjongSelectedDate", selectedDate);
 }
 function selectedDateGames() {
@@ -364,8 +376,8 @@ function renderSheetSelect() {
   const select = document.getElementById("dateSheetSelect");
   const dates = uniqueDates();
   if (!dates.includes(selectedDate) && selectedDate) dates.push(selectedDate);
-  dates.sort();
-  select.innerHTML = dates.map(date => `<option value="${escapeAttr(date)}" ${date === selectedDate ? "selected" : ""}>${escapeHtml(date)}</option>`).join("");
+  const sortedDates = sortDatesDesc(dates);
+  select.innerHTML = sortedDates.map(date => `<option value="${escapeAttr(date)}" ${date === selectedDate ? "selected" : ""}>${escapeHtml(formatDateJapanese(date))}</option>`).join("");
 }
 function renderGames() {
   ensureSelectedDate();
@@ -386,7 +398,7 @@ function renderGames() {
     let html = `
       <div class="game-head">
         <div class="game-meta">
-          <span class="date-chip">${escapeHtml(game.date || selectedDate)}</span>
+          <span class="date-chip">${escapeHtml(formatDateJapanese(game.date || selectedDate))}</span>
           <span class="game-title">対局 ${formatNumber(getGameNumberForDate(gameIndex))}</span>
         </div>
         <div class="game-actions">
@@ -473,7 +485,7 @@ function getDateSummaries() {
       byDate[date][name].total += p.result;
     });
   });
-  return Object.keys(byDate).sort().map(date => ({ date, players: Object.values(byDate[date]).sort((a,b) => b.total - a.total) }));
+  return sortDatesDesc(Object.keys(byDate)).map(date => ({ date, players: Object.values(byDate[date]).sort((a,b) => b.total - a.total) }));
 }
 
 function updateDateNote(date, value) {
@@ -498,7 +510,7 @@ function renderDateSummary() {
       return `<tr><td>${escapeHtml(p.name)}</td><td>${formatNumber(p.count)}</td><td class="${signedClass(p.total)}">${signedText(p.total)}</td><td class="${signedClass(rated)}">${signedText(rated)}</td></tr>`;
     }).join("");
     const noteRaw = dateNotes[date] ?? "";
-    return `<div class="date-card"><div class="date-head"><h3>${escapeHtml(date)}</h3><label class="rate-box">レート<input type="text" inputmode="decimal" value="${rateRaw ? formatNumber(parseNumber(rateRaw)) : ""}" onfocus="this.value=this.value.replace(/,/g,'')" oninput="updateRate('${escapeAttr(date)}', this.value)" onblur="commitRate('${escapeAttr(date)}', this)" onkeydown="if(event.key==='Enter'){event.preventDefault();commitRate('${escapeAttr(date)}',this);this.blur();}"></label></div><div class="table-wrap"><table><thead><tr><th>名前</th><th>回数</th><th>日付内合計</th><th>合計×レート</th></tr></thead><tbody>${rows}</tbody></table></div><textarea class="date-note" rows="2" placeholder="メモ" oninput="updateDateNote('${escapeAttr(date)}', this.value)" onblur="commitDateNote('${escapeAttr(date)}', this)">${escapeHtml(noteRaw)}</textarea></div>`;
+    return `<div class="date-card"><div class="date-head"><h3>${escapeHtml(formatDateJapanese(date))}</h3><label class="rate-box">レート<input type="text" inputmode="decimal" value="${rateRaw ? formatNumber(parseNumber(rateRaw)) : ""}" onfocus="this.value=this.value.replace(/,/g,'')" oninput="updateRate('${escapeAttr(date)}', this.value)" onblur="commitRate('${escapeAttr(date)}', this)" onkeydown="if(event.key==='Enter'){event.preventDefault();commitRate('${escapeAttr(date)}',this);this.blur();}"></label></div><div class="table-wrap"><table><thead><tr><th>名前</th><th>回数</th><th>日付内合計</th><th>合計×レート</th></tr></thead><tbody>${rows}</tbody></table></div><textarea class="date-note" rows="2" placeholder="メモ" oninput="updateDateNote('${escapeAttr(date)}', this.value)" onblur="commitDateNote('${escapeAttr(date)}', this)">${escapeHtml(noteRaw)}</textarea></div>`;
   }).join("");
   document.getElementById("dateSummary").innerHTML = html || `<div class="compact-card">データがありません</div>`;
 }
