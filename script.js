@@ -7,6 +7,7 @@ let dateRates = JSON.parse(localStorage.getItem("mahjongDateRates")) || {};
 let remoteDocRef = null;
 let isApplyingRemote = false;
 let isFirebaseReady = false;
+let remoteSaveTimer = null;
 let currentPage = Math.max(1, Math.ceil(games.length / PAGE_SIZE));
 let dateCurrentPage = 1;
 let activeTab = "input";
@@ -35,6 +36,12 @@ function initFirebaseSync() {
       }
 
       const data = snapshot.data() || {};
+      // 入力中にFirestoreの同期で画面全体を再描画すると、
+      // 1文字入力した時点でフォーカスが外れてしまうため、入力中は反映を保留します。
+      if (isUserEditing()) {
+        return;
+      }
+
       isApplyingRemote = true;
       games = Array.isArray(data.games) ? data.games : [];
       dateRates = data.dateRates && typeof data.dateRates === "object" ? data.dateRates : {};
@@ -54,6 +61,10 @@ function initFirebaseSync() {
 }
 
 function persistRemoteData() {
+  if (remoteSaveTimer) {
+    clearTimeout(remoteSaveTimer);
+    remoteSaveTimer = null;
+  }
   if (!isFirebaseReady || !remoteDocRef || isApplyingRemote) return;
   return remoteDocRef.set({
     games,
@@ -65,14 +76,31 @@ function persistRemoteData() {
   });
 }
 
-function saveGames() {
-  localStorage.setItem("mahjongGames", JSON.stringify(games));
-  persistRemoteData();
+function scheduleRemoteSave() {
+  if (!isFirebaseReady || !remoteDocRef || isApplyingRemote) return;
+  if (remoteSaveTimer) clearTimeout(remoteSaveTimer);
+  remoteSaveTimer = setTimeout(() => {
+    persistRemoteData();
+  }, 800);
 }
 
-function saveRates() {
+function saveGames(options = {}) {
+  localStorage.setItem("mahjongGames", JSON.stringify(games));
+  if (options.immediate) persistRemoteData();
+  else scheduleRemoteSave();
+}
+
+function saveRates(options = {}) {
   localStorage.setItem("mahjongDateRates", JSON.stringify(dateRates));
-  persistRemoteData();
+  if (options.immediate) persistRemoteData();
+  else scheduleRemoteSave();
+}
+
+function isUserEditing() {
+  const el = document.activeElement;
+  if (!el) return false;
+  const tag = el.tagName ? el.tagName.toLowerCase() : "";
+  return ["input", "textarea", "select"].includes(tag);
 }
 
 function parseNumber(value) {
@@ -181,7 +209,7 @@ function addGame() {
     memo: "",
     players: names.map(name => ({ name, score: "" }))
   });
-  saveGames();
+  saveGames({ immediate: true });
   currentPage = Math.max(1, Math.ceil(games.length / PAGE_SIZE));
   switchTab("input");
 }
@@ -189,7 +217,7 @@ function addGame() {
 function deleteGame(gameIndex) {
   if (!confirm("この対局を削除しますか？")) return;
   games.splice(gameIndex, 1);
-  saveGames();
+  saveGames({ immediate: true });
   currentPage = Math.min(currentPage, Math.max(1, Math.ceil(games.length / PAGE_SIZE)));
   renderAll();
 }
@@ -197,7 +225,7 @@ function deleteGame(gameIndex) {
 function clearAll() {
   if (!confirm("すべての対局データを削除しますか？")) return;
   games = [];
-  saveGames();
+  saveGames({ immediate: true });
   currentPage = 1;
   renderAll();
 }
