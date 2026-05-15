@@ -1172,3 +1172,40 @@ html, body {
 }
 
 .build-badge{font-size:11px;color:#64748b;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:2px 7px;margin-left:6px;white-space:nowrap;}
+
+/* v2: iPhone readability adjustment - match diff/result and date-summary text to score input size */
+.player-grid input[data-tab-kind="score"],
+.readonly-cell[data-diff-index],
+.readonly-cell[data-result-index] {
+  font-size: 16px !important;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+#dateSummary table,
+#dateSummary th,
+#dateSummary td {
+  font-size: 16px !important;
+  line-height: 1.25;
+}
+
+#dateSummary th,
+#dateSummary td {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+@media (max-width: 560px) {
+  .readonly-cell[data-diff-index],
+  .readonly-cell[data-result-index] {
+    font-size: 16px !important;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  #dateSummary table,
+  #dateSummary th,
+  #dateSummary td {
+    font-size: 16px !important;
+  }
+}
