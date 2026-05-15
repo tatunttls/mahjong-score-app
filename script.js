@@ -426,7 +426,6 @@ function renderGames() {
           <input class="date-input" type="date" value="${game.date || ""}" onchange="updateDate(${gameIndex}, this.value)">
           <span class="game-title">対局 ${formatNumber(getGameNumberForDate(gameIndex))}</span>
         </div>
-        <input class="game-memo" type="text" value="${escapeHtml(game.memo || "")}" placeholder="メモ" oninput="updateMemo(${gameIndex}, this.value)" onblur="commitMemo(${gameIndex}, this.value)">
         <div class="game-actions">
           <span class="total-status" data-total-status>${totalWarning}</span>
           <button class="danger" onclick="deleteGame(${gameIndex})">削除</button>

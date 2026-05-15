@@ -808,3 +808,167 @@ input[type="number"] { -moz-appearance: textfield; }
     max-width: 100%;
   }
 }
+
+
+/* v5 mobile stability: remove memo from header and force input block to fit iPhone width */
+.game-head {
+  grid-template-columns: 1fr auto;
+}
+
+.game-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.game-actions {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 560px) {
+  body { overflow-x: hidden; }
+
+  .app {
+    width: 100vw;
+    max-width: 100vw;
+    padding-left: 4px;
+    padding-right: 4px;
+    overflow-x: hidden;
+  }
+
+  .topbar,
+  .tabs,
+  .combined-toolbar,
+  .pager,
+  .game,
+  .compact-card,
+  .date-card,
+  .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .game {
+    padding-left: 4px;
+    padding-right: 4px;
+    overflow-x: hidden;
+  }
+
+  .game-head {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .game-meta {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+
+  .date-input {
+    width: 112px;
+    max-width: 112px;
+    min-width: 0;
+    font-size: 11px;
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+
+  .game-title {
+    font-size: 11px;
+    padding-left: 5px;
+    padding-right: 5px;
+    min-height: 24px;
+  }
+
+  .game-actions {
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .total-status {
+    max-width: 112px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 9px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .game-actions button.danger {
+    min-width: 38px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 11px;
+  }
+
+  .player-grid {
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.02fr) minmax(0, .45fr) minmax(0, .62fr) minmax(0, .62fr) !important;
+    column-gap: 2px;
+    row-gap: 3px;
+  }
+
+  .player-grid > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .player-grid input,
+  .readonly-cell {
+    font-size: 10.5px;
+    min-height: 25px;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .player-grid input[data-tab-kind="name"] {
+    font-size: 11px;
+  }
+
+  .player-grid input[data-tab-kind="score"] {
+    font-size: 10.5px;
+  }
+
+  .rank-cell {
+    font-size: 10px;
+    padding-left: 1px;
+    padding-right: 1px;
+  }
+
+  .readonly-cell[data-diff-index],
+  .readonly-cell[data-result-index] {
+    font-size: 10px;
+    padding-left: 1px;
+    padding-right: 1px;
+  }
+
+  .header-cell {
+    font-size: 9px;
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .player-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, .95fr) minmax(0, .42fr) minmax(0, .58fr) minmax(0, .58fr) !important;
+    column-gap: 1px;
+  }
+
+  .player-grid input,
+  .readonly-cell {
+    font-size: 10px;
+  }
+
+  .header-cell { font-size: 8.5px; }
+  .date-input { width: 108px; max-width: 108px; }
+  .game-actions button.danger { min-width: 36px; }
+}
