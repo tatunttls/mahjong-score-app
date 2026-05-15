@@ -517,5 +517,56 @@ function renderAll() { ensureSelectedDate(); renderGames(); renderSummary(); ren
 function escapeHtml(value) { return String(value).replace(/[&<>"]/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[s])); }
 function escapeAttr(value) { return String(value).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
+
+const TAB_ORDER = ["input", "date", "personal"];
+let swipeStartX = 0;
+let swipeStartY = 0;
+let swipeStartTime = 0;
+
+function isSwipeIgnoredTarget(target) {
+  if (!target) return false;
+  const el = target.closest ? target.closest("input, textarea, select, button, a, .table-wrap") : null;
+  return !!el;
+}
+function switchTabBySwipe(direction) {
+  const currentIndex = TAB_ORDER.indexOf(activeTab);
+  if (currentIndex === -1) return;
+  const nextIndex = direction === "left" ? currentIndex + 1 : currentIndex - 1;
+  if (nextIndex < 0 || nextIndex >= TAB_ORDER.length) return;
+  switchTab(TAB_ORDER[nextIndex]);
+}
+function initSwipeTabs() {
+  const area = document.getElementById("scrollArea");
+  if (!area) return;
+  area.addEventListener("touchstart", event => {
+    if (event.touches.length !== 1) return;
+    if (isUserEditing() || isSwipeIgnoredTarget(event.target)) return;
+    const touch = event.touches[0];
+    swipeStartX = touch.clientX;
+    swipeStartY = touch.clientY;
+    swipeStartTime = Date.now();
+  }, { passive: true });
+  area.addEventListener("touchend", event => {
+    if (!swipeStartTime) return;
+    if (isUserEditing() || isSwipeIgnoredTarget(event.target)) {
+      swipeStartTime = 0;
+      return;
+    }
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - swipeStartX;
+    const dy = touch.clientY - swipeStartY;
+    const elapsed = Date.now() - swipeStartTime;
+    swipeStartTime = 0;
+
+    const horizontalEnough = Math.abs(dx) >= 70;
+    const verticalSmall = Math.abs(dy) <= 45;
+    const quickEnough = elapsed <= 800;
+    if (!horizontalEnough || !verticalSmall || !quickEnough) return;
+
+    switchTabBySwipe(dx < 0 ? "left" : "right");
+  }, { passive: true });
+}
+
 renderAll();
+initSwipeTabs();
 initFirebaseSync();
