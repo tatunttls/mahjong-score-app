@@ -721,3 +721,90 @@ input[type="number"] { -moz-appearance: textfield; }
   flex: 0 0 auto;
   border-radius: 5px;
 }
+
+/* v4 shared: iPhone width fix for game input block */
+@media (max-width: 480px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .topbar,
+  .tabs,
+  .combined-toolbar,
+  .pager,
+  .game,
+  .compact-card,
+  .date-card,
+  .table-wrap {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .game {
+    padding-left: 5px;
+    padding-right: 5px;
+    overflow: hidden;
+  }
+
+  .game-head {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .player-grid {
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1.32fr) minmax(0, 1.04fr) minmax(0, .52fr) minmax(0, .72fr) minmax(0, .72fr);
+    column-gap: 2px;
+    row-gap: 3px;
+  }
+
+  .player-grid input,
+  .readonly-cell,
+  .rank-cell,
+  .header-cell {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .player-grid input,
+  .readonly-cell {
+    font-size: 11px;
+    min-height: 26px;
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+
+  .rank-cell {
+    font-size: 11px;
+    padding-left: 1px;
+    padding-right: 1px;
+  }
+
+  .header-cell {
+    font-size: 9px;
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+  }
+
+  .header-cell:first-child {
+    text-align: center;
+  }
+
+  .date-input {
+    max-width: 120px;
+  }
+
+  .game-memo {
+    min-width: 80px;
+    max-width: 100%;
+  }
+}
