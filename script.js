@@ -22,6 +22,21 @@ function wasRecentPointerAction() {
   return Date.now() - lastPointerDownAt < 500;
 }
 
+
+function resetIOSZoomAfterInput() {
+  // iPhone Safari の入力ズームが残った場合に、入力確定後に通常倍率へ戻します。
+  if (!/iPhone|iPad|iPod/i.test(navigator.userAgent)) return;
+  setTimeout(() => {
+    window.scrollTo(window.scrollX, window.scrollY);
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      const content = viewport.getAttribute('content');
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+      setTimeout(() => viewport.setAttribute('content', content), 50);
+    }
+  }, 80);
+}
+
 function markLocalEditing() {
   localEditUntil = Date.now() + 3000;
 }
@@ -278,6 +293,7 @@ function updateName(gameIndex, playerIndex, value) {
 }
 
 function commitName(gameIndex, playerIndex, value) {
+  resetIOSZoomAfterInput();
   markLocalEditing();
   games[gameIndex].players[playerIndex].name = value;
   saveGames({ immediate: true });
@@ -287,6 +303,7 @@ function commitName(gameIndex, playerIndex, value) {
 }
 
 function updateDate(gameIndex, value) {
+  resetIOSZoomAfterInput();
   markLocalEditing();
   games[gameIndex].date = value;
   saveGames();
@@ -386,6 +403,7 @@ function focusNextInputOfKind(currentInput, kind, backwards = false) {
 
 function handleScoreBlur(gameIndex, playerIndex, input) {
   updateScoreValue(gameIndex, playerIndex, input, true);
+  resetIOSZoomAfterInput();
 
   // iPhone Safari のキーボード「次へ」は keydown/Tab/Enter を発火しないことがあるため、
   // 画面タップではない blur の場合だけ、次の点数欄へ明示的にフォーカスを移します。
@@ -409,6 +427,7 @@ function handleScoreKeydown(event, gameIndex, playerIndex) {
     updateScoreValue(gameIndex, playerIndex, event.target, true);
     const moved = focusNextInputOfKind(event.target, "score", event.shiftKey);
     if (!moved) event.target.blur();
+    resetIOSZoomAfterInput();
   }
 }
 
@@ -571,6 +590,7 @@ function updateRate(date, value) {
 }
 
 function commitRate(date, input) {
+  resetIOSZoomAfterInput();
   markLocalEditing();
   updateRate(date, input.value);
   const rate = parseNumber(dateRates[date]) || 0;

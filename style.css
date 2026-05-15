@@ -972,3 +972,22 @@ input[type="number"] { -moz-appearance: textfield; }
   .date-input { width: 108px; max-width: 108px; }
   .game-actions button.danger { min-width: 36px; }
 }
+
+
+/* v10: prevent iPhone Safari input auto-zoom and keep layout stable */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  .player-grid input,
+  .date-input,
+  .rate-box input {
+    font-size: 16px !important;
+  }
+}
