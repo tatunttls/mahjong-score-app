@@ -320,6 +320,25 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; }
 
+.date-note {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 6px;
+  resize: vertical;
+  border: 1px solid #d8e1df;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 16px;
+  line-height: 1.35;
+  background: #fbfdfd;
+  box-sizing: border-box;
+}
+.date-note:focus {
+  outline: 2px solid rgba(40, 135, 120, 0.18);
+  border-color: var(--accent);
+}
+
+
 @media (max-width: 720px) {
   .app { padding: 6px; }
   .topbar { padding: 7px 8px; align-items: center; }
@@ -989,5 +1008,122 @@ html {
   .date-input,
   .rate-box input {
     font-size: 16px !important;
+  }
+}
+
+/* v11 local sheets: fixed title/tabs and date-sheet input flow */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.fixed-head {
+  flex: 0 0 auto;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+  padding-top: 6px;
+  padding-bottom: 4px;
+}
+
+.scroll-area {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 20px;
+}
+
+.sheet-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.sheet-select-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.sheet-select-label select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.new-date-button,
+.add-game-button {
+  white-space: nowrap;
+}
+
+.hidden-date {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.date-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-weight: 800;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+#dateSummary .date-card {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 560px) {
+  .fixed-head {
+    padding-top: 4px;
+  }
+
+  .sheet-toolbar {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+
+  .sheet-select-label {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .add-game-button {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .new-date-button {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .date-chip,
+  .game-title {
+    font-size: 11px;
+    padding-left: 5px;
+    padding-right: 5px;
   }
 }

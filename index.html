@@ -4,38 +4,42 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>4人麻雀 成績記録</title>
+  <link rel="icon" type="image/png" href="header-chu.png" />
+  <link rel="apple-touch-icon" href="header-chu.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
-    <header class="topbar">
-      <div class="title-area">
-        <img class="title-logo" src="header-chu.png" alt="中" />
-        <h1>4人麻雀 成績記録</h1>
-      </div>
-    </header>
+    <div class="fixed-head">
+      <header class="topbar">
+        <div class="title-area">
+          <img class="title-logo" src="header-chu.png" alt="中" />
+          <h1>4人麻雀 成績記録</h1>
+        </div>
+      </header>
 
-    <nav class="tabs">
-      <button id="tabInput" class="active" onclick="switchTab('input')">対局入力</button>
-      <button id="tabDate" onclick="switchTab('date')">日付別成績</button>
-      <button id="tabPersonal" onclick="switchTab('personal')">個人成績</button>
-    </nav>
+      <nav class="tabs">
+        <button id="tabInput" class="active" onclick="switchTab('input')">対局入力</button>
+        <button id="tabDate" onclick="switchTab('date')">日付別成績</button>
+        <button id="tabPersonal" onclick="switchTab('personal')">個人成績</button>
+      </nav>
+    </div>
 
-    <main>
+    <main class="scroll-area" id="scrollArea">
       <section id="inputPanel" class="panel active">
-        <div class="input-toolbar combined-toolbar">
-          <div class="toolbar-spacer" aria-hidden="true"></div>
-          <div id="pagerTop" class="pager toolbar-pager"></div>
-          <button class="add-game-button" onclick="addGame()">対局追加</button>
+        <div class="sheet-toolbar compact-card">
+          <button class="add-game-button" onclick="addGameToSelectedDate()">対局追加</button>
+          <input id="newDatePicker" class="hidden-date" type="date" onchange="createDateSheet(this.value); this.value=''; this.blur();" />
+          <label class="sheet-select-label">対局日
+            <select id="dateSheetSelect" onchange="selectDateSheet(this.value)"></select>
+          </label>
+          <button class="new-date-button" onclick="openNewDatePicker()">新規対局日</button>
         </div>
         <div id="games"></div>
-        <div id="pagerBottom" class="pager"></div>
       </section>
 
       <section id="datePanel" class="panel">
-        <div id="datePagerTop" class="pager"></div>
         <div id="dateSummary"></div>
-        <div id="datePagerBottom" class="pager"></div>
       </section>
 
       <section id="personalPanel" class="panel">
@@ -43,14 +47,8 @@
           <table>
             <thead>
               <tr>
-                <th>名前</th>
-                <th>回数</th>
-                <th>合計</th>
-                <th>平均</th>
-                <th>1位</th>
-                <th>2位</th>
-                <th>3位</th>
-                <th>4位</th>
+                <th>名前</th><th>回数</th><th>合計</th><th>平均</th>
+                <th>1位</th><th>2位</th><th>3位</th><th>4位</th>
               </tr>
             </thead>
             <tbody id="summaryBody"></tbody>
