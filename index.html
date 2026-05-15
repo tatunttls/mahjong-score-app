@@ -17,8 +17,8 @@
 
     <nav class="tabs">
       <button id="tabInput" class="active" onclick="switchTab('input')">対局入力</button>
-      <button id="tabPersonal" onclick="switchTab('personal')">個人成績</button>
       <button id="tabDate" onclick="switchTab('date')">日付別成績</button>
+      <button id="tabPersonal" onclick="switchTab('personal')">個人成績</button>
     </nav>
 
     <main>
@@ -30,6 +30,12 @@
         </div>
         <div id="games"></div>
         <div id="pagerBottom" class="pager"></div>
+      </section>
+
+      <section id="datePanel" class="panel">
+        <div id="datePagerTop" class="pager"></div>
+        <div id="dateSummary"></div>
+        <div id="datePagerBottom" class="pager"></div>
       </section>
 
       <section id="personalPanel" class="panel">
@@ -50,12 +56,6 @@
             <tbody id="summaryBody"></tbody>
           </table>
         </div>
-      </section>
-
-      <section id="datePanel" class="panel">
-        <div id="datePagerTop" class="pager"></div>
-        <div id="dateSummary"></div>
-        <div id="datePagerBottom" class="pager"></div>
       </section>
     </main>
   </div>

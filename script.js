@@ -362,12 +362,30 @@ function handleTabMove(event, kind) {
   if (inputs[nextIndex]) inputs[nextIndex].focus();
 }
 
+function focusNextInputOfKind(currentInput, kind, backwards = false) {
+  const inputs = [...document.querySelectorAll(`input[data-tab-kind="${kind}"]`)];
+  const index = inputs.indexOf(currentInput);
+  if (index === -1) return false;
+  const nextIndex = backwards ? index - 1 : index + 1;
+  if (inputs[nextIndex]) {
+    inputs[nextIndex].focus();
+    if (kind === "score") inputs[nextIndex].select();
+    return true;
+  }
+  return false;
+}
+
 function handleScoreKeydown(event, gameIndex, playerIndex) {
-  handleTabMove(event, "score");
+  if (event.key === "Tab") {
+    handleTabMove(event, "score");
+    return;
+  }
+
   if (event.key === "Enter") {
     event.preventDefault();
     updateScoreValue(gameIndex, playerIndex, event.target, true);
-    event.target.blur();
+    const moved = focusNextInputOfKind(event.target, "score", event.shiftKey);
+    if (!moved) event.target.blur();
   }
 }
 
@@ -440,16 +458,18 @@ function renderGames() {
     `;
 
     calculated.players.forEach((p, playerIndex) => {
+      const nameTabIndex = offset * 8 + playerIndex + 1;
+      const scoreTabIndex = offset * 8 + 4 + playerIndex + 1;
       const rawScore = games[gameIndex].players[playerIndex].score;
       const parsedRawScore = parseNumber(rawScore);
       const displayScore = Number.isFinite(parsedRawScore) ? formatNumber(parsedRawScore) : "";
       const scoreClass = Number.isFinite(parsedRawScore) && parsedRawScore < 0 ? "negative-input" : "";
       html += `
-        <input type="text" data-tab-kind="name" value="${escapeHtml(p.name || "")}" placeholder="名前"
+        <input type="text" data-tab-kind="name" tabindex="${nameTabIndex}" enterkeyhint="next" value="${escapeHtml(p.name || "")}" placeholder="名前"
           oninput="updateName(${gameIndex}, ${playerIndex}, this.value)"
           onblur="commitName(${gameIndex}, ${playerIndex}, this.value)"
           onkeydown="handleTabMove(event, 'name')">
-        <input type="text" inputmode="numeric" data-tab-kind="score" data-score-index="${playerIndex}" class="${scoreClass}"
+        <input type="text" inputmode="numeric" pattern="[0-9,\-]*" data-tab-kind="score" data-score-index="${playerIndex}" tabindex="${scoreTabIndex}" enterkeyhint="next" class="${scoreClass}"
           value="${displayScore}" placeholder="30,000"
           onfocus="this.value = this.value.replace(/,/g, '')"
           oninput="updateScoreValue(${gameIndex}, ${playerIndex}, this, false)"
