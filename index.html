@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4人麻雀 成績記録</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title-area">
+        <img class="title-logo" src="header-chu.png" alt="中" />
+        <h1>4人麻雀 成績記録</h1>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button id="tabInput" class="active" onclick="switchTab('input')">対局入力</button>
+      <button id="tabPersonal" onclick="switchTab('personal')">個人成績</button>
+      <button id="tabDate" onclick="switchTab('date')">日付別成績</button>
+    </nav>
+
+    <main>
+      <section id="inputPanel" class="panel active">
+        <div class="input-toolbar combined-toolbar">
+          <div class="toolbar-spacer" aria-hidden="true"></div>
+          <div id="pagerTop" class="pager toolbar-pager"></div>
+          <button class="add-game-button" onclick="addGame()">対局追加</button>
+        </div>
+        <div id="games"></div>
+        <div id="pagerBottom" class="pager"></div>
+      </section>
+
+      <section id="personalPanel" class="panel">
+        <div class="table-wrap compact-card">
+          <table>
+            <thead>
+              <tr>
+                <th>名前</th>
+                <th>回数</th>
+                <th>合計</th>
+                <th>平均</th>
+                <th>1位</th>
+                <th>2位</th>
+                <th>3位</th>
+                <th>4位</th>
+              </tr>
+            </thead>
+            <tbody id="summaryBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="datePanel" class="panel">
+        <div id="datePagerTop" class="pager"></div>
+        <div id="dateSummary"></div>
+        <div id="datePagerBottom" class="pager"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

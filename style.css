@@ -1,0 +1,723 @@
+:root {
+  --bg: #f5f7f7;
+  --bg2: #eef5f3;
+  --card: #ffffff;
+  --text: #17202a;
+  --muted: #667085;
+  --line: #d7e0df;
+  --accent: #0f766e;
+  --accent-dark: #115e59;
+  --accent-soft: #d9f2ee;
+  --blue-soft: #e8f1ff;
+  --gold-soft: #fff3c4;
+  --danger: #c0392b;
+  --danger-bg: #ffe9e7;
+  --positive: #047857;
+  --shadow: 0 4px 14px rgba(15, 118, 110, .10);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 6px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+h1 {
+  font-size: 16px;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: .02em;
+}
+
+h2, h3 { margin: 0; line-height: 1.2; }
+h3 { font-size: 15px; }
+
+.actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+button, input, select {
+  font-size: 12px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  padding: 5px 6px;
+  min-height: 28px;
+}
+
+input, select { background: #fff; color: var(--text); }
+input:focus, select:focus {
+  outline: 2px solid rgba(15, 118, 110, .22);
+  border-color: var(--accent);
+}
+
+button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(15, 118, 110, .16);
+}
+
+button:disabled { opacity: .4; cursor: default; box-shadow: none; }
+button.danger { background: var(--danger); }
+.topbar button.danger { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35); }
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-bottom: 5px;
+}
+
+.tabs button {
+  background: #ffffff;
+  color: var(--accent-dark);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  padding: 5px 5px;
+}
+
+.tabs button.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+.input-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin: 4px 0 6px;
+}
+.input-actions button { min-width: 104px; }
+
+.input-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  max-width: var(--content-width, 620px);
+  margin: 4px auto 6px;
+}
+
+.input-toolbar .add-game-button {
+  flex: 0 0 auto;
+  min-width: 96px;
+}
+
+.input-toolbar .toolbar-pager {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  margin: 0;
+}
+
+input.negative-input {
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.game, .compact-card, .date-card {
+  background: var(--card);
+  border: 1px solid rgba(215, 224, 223, .85);
+  border-radius: 10px;
+  padding: 6px;
+  margin-bottom: 6px;
+  box-shadow: var(--shadow);
+}
+
+.game-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #edf2f1;
+}
+
+.game-meta, .game-actions { display: flex; align-items: center; gap: 6px; }
+.game-meta { min-width: 0; flex-wrap: wrap; flex-shrink: 0; }
+.game-actions { justify-content: flex-end; flex-shrink: 0; }
+
+.game-title {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--gold-soft);
+  color: #7a5100;
+  font-weight: 800;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.date-input { max-width: 138px; }
+
+.game-memo {
+  flex: 1 1 180px;
+  min-width: 120px;
+  max-width: 320px;
+  height: 25px;
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
+.total-status {
+  min-width: 0;
+  font-size: 11px;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border: 1px solid #ffc7c1;
+  border-radius: 999px;
+  padding: 4px 7px;
+  font-weight: 800;
+  white-space: nowrap;
+  text-align: right;
+}
+.total-status:empty { display: none; }
+
+.player-grid {
+  display: grid;
+  grid-template-columns: 1.1fr .95fr .48fr .65fr .65fr;
+  gap: 4px;
+  align-items: center;
+}
+
+.header-cell {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  padding: 0 2px 1px;
+}
+
+.player-grid input { width: 100%; }
+
+.readonly-cell {
+  min-height: 28px;
+  padding: 5px 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.rank-cell {
+  text-align: center;
+  background: var(--blue-soft);
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.score-invalid {
+  background: var(--danger-bg) !important;
+  border-color: var(--danger) !important;
+}
+
+.negative { color: var(--danger) !important; font-weight: 800; }
+.positive { color: var(--positive) !important; font-weight: 800; }
+
+.pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin: 5px 0;
+  flex-wrap: wrap;
+}
+.pager button { min-width: 44px; padding: 4px 7px; min-height: 27px; }
+.page-info { font-size: 12px; color: var(--muted); padding: 0 4px; font-weight: 700; }
+
+.table-wrap { overflow-x: auto; }
+
+table {
+  width: auto;
+  min-width: min(100%, 520px);
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  font-size: 13px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+th, td {
+  border-bottom: 1px solid var(--line);
+  padding: 4px 6px;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+th:first-child, td:first-child { text-align: left; }
+th {
+  background: #edf8f6;
+  color: var(--accent-dark);
+  font-weight: 800;
+  font-size: 12px;
+}
+tr:last-child td { border-bottom: none; }
+tbody tr:nth-child(even) td { background: #fbfdfd; }
+
+.date-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #edf2f1;
+}
+
+.date-head h3 {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rate-box {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+.rate-box input { width: 72px; text-align: right; }
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
+
+@media (max-width: 720px) {
+  .app { padding: 6px; }
+  .topbar { padding: 7px 8px; align-items: center; }
+  h1 { font-size: 16px; }
+  button, input, select { font-size: 12px; padding: 5px 6px; min-height: 29px; }
+  .tabs { gap: 4px; }
+  .tabs button { padding: 6px 4px; }
+  .game, .compact-card, .date-card { padding: 7px; border-radius: 10px; }
+  .game-head { align-items: flex-start; gap: 5px; }
+  .game-meta { gap: 5px; }
+  .game-actions { gap: 5px; }
+  .date-input { max-width: 132px; }
+  .game-title { min-height: 26px; font-size: 12px; padding: 4px 7px; }
+  .total-status { font-size: 10px; padding: 3px 6px; }
+  .player-grid {
+    grid-template-columns: 1.05fr .9fr .42fr .58fr .58fr;
+    gap: 3px;
+  }
+  .header-cell { font-size: 10px; }
+  .readonly-cell { min-height: 29px; padding: 5px 4px; font-size: 12px; }
+  table { font-size: 12px; }
+  th, td { padding: 4px 6px; }
+  .date-head { align-items: flex-start; }
+  .rate-box input { width: 78px; }
+}
+
+/* v26: 入力欄・表示欄の横幅を用途別にコンパクト化 */
+.player-grid {
+  grid-template-columns: 7.2em 7.6em 3.4em 4.8em 4.8em;
+  justify-content: start;
+  column-gap: 4px;
+  row-gap: 4px;
+}
+
+.player-grid input,
+.readonly-cell {
+  width: 100%;
+  min-width: 0;
+}
+
+.player-grid input[data-tab-kind="name"] {
+  width: 7.2em;
+}
+
+.player-grid input[data-tab-kind="score"] {
+  width: 7.6em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-cell {
+  width: 3.4em;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.readonly-cell[data-diff-index],
+.readonly-cell[data-result-index] {
+  width: 4.8em;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.header-cell {
+  text-align: center;
+}
+
+.header-cell:first-child {
+  text-align: left;
+}
+
+@media (max-width: 720px) {
+  .player-grid {
+    grid-template-columns: 6.8em 7.2em 3.2em 4.5em 4.5em;
+    justify-content: start;
+    column-gap: 3px;
+  }
+
+  .player-grid input[data-tab-kind="name"] { width: 6.8em; }
+  .player-grid input[data-tab-kind="score"] { width: 7.2em; }
+  .rank-cell { width: 3.2em; }
+  .readonly-cell[data-diff-index],
+  .readonly-cell[data-result-index] { width: 4.5em; }
+}
+
+
+/* v27: 入力欄に合わせて外枠・タブ・カード幅もコンパクト化 */
+.tabs {
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.input-actions, .input-toolbar, .pager {
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.game {
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.compact-card, .date-card {
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.game-head {
+  min-width: 0;
+}
+
+.game-actions button.danger {
+  min-width: 48px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.player-grid {
+  width: max-content;
+  max-width: 100%;
+}
+
+.table-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.table-wrap table {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 720px) {
+  .app {
+    max-width: 100%;
+    padding: 5px;
+  }
+
+  .topbar {
+    border-radius: 9px;
+    padding: 6px 7px;
+  }
+
+  .tabs {
+    max-width: 100%;
+  }
+
+  .table-wrap {
+    justify-content: flex-start;
+  }
+}
+
+/* v28: 入力ブロックとタイトルバナーを集計ブロック幅に統一し、入力欄をバランスよく拡張 */
+:root {
+  --content-width: 620px;
+}
+
+.app {
+  max-width: calc(var(--content-width) + 16px);
+}
+
+.topbar,
+.tabs,
+.input-actions,
+.input-toolbar,
+.pager,
+.game,
+.compact-card,
+.date-card {
+  width: 100%;
+  max-width: var(--content-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.game {
+  width: 100%;
+}
+
+.player-grid {
+  width: 100%;
+  max-width: 100%;
+  grid-template-columns: minmax(8.5em, 1.35fr) minmax(8.2em, 1fr) 3.6em 5.4em 5.4em;
+  justify-content: stretch;
+  column-gap: 6px;
+  row-gap: 4px;
+}
+
+.player-grid input[data-tab-kind="name"],
+.player-grid input[data-tab-kind="score"],
+.rank-cell,
+.readonly-cell[data-diff-index],
+.readonly-cell[data-result-index] {
+  width: 100%;
+}
+
+.player-grid input[data-tab-kind="name"] {
+  min-width: 0;
+}
+
+.player-grid input[data-tab-kind="score"] {
+  min-width: 0;
+}
+
+.rank-cell,
+.readonly-cell[data-diff-index],
+.readonly-cell[data-result-index] {
+  min-width: 0;
+}
+
+.table-wrap {
+  width: 100%;
+  max-width: var(--content-width);
+}
+
+.table-wrap table {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .app {
+    max-width: 100%;
+    padding: 5px;
+  }
+
+  .topbar,
+  .tabs,
+  .input-actions,
+  .input-toolbar,
+  .pager,
+  .game,
+  .compact-card,
+  .date-card,
+  .table-wrap {
+    max-width: 100%;
+  }
+
+  .player-grid {
+    grid-template-columns: minmax(6.2em, 1.2fr) minmax(6.9em, 1fr) 3.1em 4.35em 4.35em;
+    column-gap: 3px;
+  }
+
+  .readonly-cell {
+    font-size: 11px;
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+}
+
+
+/* v30: 対局追加とページ遷移を同じ行に配置 */
+.input-toolbar {
+  flex-wrap: nowrap;
+}
+.input-toolbar .pager button {
+  min-width: 40px;
+}
+@media (max-width: 520px) {
+  .input-toolbar {
+    gap: 4px;
+  }
+  .input-toolbar .add-game-button {
+    min-width: 74px;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  .input-toolbar .pager {
+    gap: 2px;
+  }
+  .input-toolbar .pager button {
+    min-width: 34px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .input-toolbar .page-info {
+    padding: 0 2px;
+  }
+}
+
+
+/* v31: 上部ページ遷移ボタンを下部と同じセンター配置に戻す */
+.input-toolbar {
+  justify-content: flex-start;
+  margin-bottom: 2px;
+}
+.input-toolbar .add-game-button {
+  flex: 0 0 auto;
+}
+#pagerTop.pager {
+  justify-content: center;
+  margin-top: 2px;
+  margin-bottom: 6px;
+}
+#pagerTop.pager button {
+  min-width: 44px;
+  padding: 4px 7px;
+}
+@media (max-width: 520px) {
+  .input-toolbar {
+    gap: 4px;
+  }
+  #pagerTop.pager {
+    gap: 4px;
+  }
+  #pagerTop.pager button {
+    min-width: 44px;
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+  #pagerTop .page-info {
+    padding: 0 4px;
+  }
+}
+
+
+/* v1: 上部ページ遷移を中央に保ったまま、対局追加ボタンと同じ行に配置 */
+.combined-toolbar {
+  display: grid;
+  grid-template-columns: 96px 1fr 96px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 6px;
+}
+
+.combined-toolbar .toolbar-spacer {
+  width: 96px;
+  height: 1px;
+}
+
+.combined-toolbar .toolbar-pager {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  justify-content: center;
+}
+
+.combined-toolbar .add-game-button {
+  width: 96px;
+  min-width: 96px;
+  justify-self: end;
+}
+
+#pagerTop.pager {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+@media (max-width: 560px) {
+  .combined-toolbar {
+    grid-template-columns: 74px 1fr 74px;
+    gap: 4px;
+  }
+
+  .combined-toolbar .toolbar-spacer {
+    width: 74px;
+  }
+
+  .combined-toolbar .add-game-button {
+    width: 74px;
+    min-width: 74px;
+    padding-left: 4px;
+    padding-right: 4px;
+    font-size: 11px;
+  }
+
+  .combined-toolbar .toolbar-pager {
+    gap: 2px;
+  }
+
+  .combined-toolbar .toolbar-pager button {
+    min-width: 34px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  .combined-toolbar .page-info {
+    padding: 0 2px;
+  }
+}
+
+/* Title logo */
+.title-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.title-logo {
+  height: 30px;
+  width: auto;
+  display: block;
+  flex: 0 0 auto;
+  border-radius: 5px;
+}
