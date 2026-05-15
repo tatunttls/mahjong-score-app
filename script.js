@@ -181,16 +181,37 @@ function ensureCalculatedGame(game) {
   return { players, total, hasAnyScore, isComplete, isValidTotal };
 }
 
-function switchTab(tab) {
+function switchTab(tab, options = {}) {
   activeTab = tab;
   document.querySelectorAll(".tabs button").forEach(btn => btn.classList.remove("active"));
   document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("active"));
   document.getElementById(`tab${tab === "input" ? "Input" : tab === "personal" ? "Personal" : "Date"}`).classList.add("active");
   document.getElementById(`${tab}Panel`).classList.add("active");
+  updatePanelPosition(options.animate !== false);
   renderAll();
-  scrollToTopSoon();
+  if (options.scrollTop !== false) scrollToTopSoon();
 }
-function scrollToTopSoon() { setTimeout(() => { const el = document.getElementById("scrollArea"); if (el) el.scrollTop = 0; }, 0); }
+function scrollToTopSoon() {
+  setTimeout(() => {
+    const panel = document.getElementById(`${activeTab}Panel`);
+    if (panel) panel.scrollTop = 0;
+  }, 0);
+}
+function getActiveTabIndex() {
+  return TAB_ORDER.indexOf(activeTab);
+}
+function setTrackTranslate(px, animate = false) {
+  const track = document.getElementById("panelTrack");
+  if (!track) return;
+  track.classList.toggle("is-animating", !!animate);
+  track.style.transform = `translate3d(${px}px, 0, 0)`;
+}
+function updatePanelPosition(animate = false) {
+  const area = document.getElementById("scrollArea");
+  const index = getActiveTabIndex();
+  if (!area || index < 0) return;
+  setTrackTranslate(-index * area.clientWidth, animate);
+}
 function openNewDatePicker() {
   const row = document.getElementById("newDateRow");
   const picker = document.getElementById("newDatePicker");
@@ -521,19 +542,45 @@ function escapeAttr(value) { return String(value).replace(/&/g,"&amp;").replace(
 const TAB_ORDER = ["input", "date", "personal"];
 let swipeStartX = 0;
 let swipeStartY = 0;
+let swipeLastX = 0;
 let swipeStartTime = 0;
+let swipeMode = "";
+let swipeBaseX = 0;
+let swipeWidth = 0;
+let swipeTracking = false;
 
 function isSwipeIgnoredTarget(target) {
   if (!target) return false;
   const el = target.closest ? target.closest("input, textarea, select, button, a, .table-wrap") : null;
   return !!el;
 }
-function switchTabBySwipe(direction) {
-  const currentIndex = TAB_ORDER.indexOf(activeTab);
-  if (currentIndex === -1) return;
-  const nextIndex = direction === "left" ? currentIndex + 1 : currentIndex - 1;
-  if (nextIndex < 0 || nextIndex >= TAB_ORDER.length) return;
-  switchTab(TAB_ORDER[nextIndex]);
+function clampSwipeDelta(dx) {
+  const index = getActiveTabIndex();
+  if (index <= 0 && dx > 0) return dx * 0.28;
+  if (index >= TAB_ORDER.length - 1 && dx < 0) return dx * 0.28;
+  return dx;
+}
+function finishSwipe(dx, elapsed) {
+  const index = getActiveTabIndex();
+  let nextIndex = index;
+  const enoughDistance = Math.abs(dx) > Math.min(120, swipeWidth * 0.24);
+  const enoughFlick = Math.abs(dx) > 55 && elapsed < 360;
+  if ((enoughDistance || enoughFlick) && Math.abs(dx) > 35) {
+    nextIndex = dx < 0 ? index + 1 : index - 1;
+  }
+  nextIndex = Math.max(0, Math.min(TAB_ORDER.length - 1, nextIndex));
+  if (nextIndex !== index) {
+    activeTab = TAB_ORDER[nextIndex];
+    document.querySelectorAll(".tabs button").forEach(btn => btn.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("active"));
+    document.getElementById(`tab${activeTab === "input" ? "Input" : activeTab === "personal" ? "Personal" : "Date"}`).classList.add("active");
+    document.getElementById(`${activeTab}Panel`).classList.add("active");
+    updatePanelPosition(true);
+    renderAll();
+    scrollToTopSoon();
+  } else {
+    updatePanelPosition(true);
+  }
 }
 function initSwipeTabs() {
   const area = document.getElementById("scrollArea");
@@ -544,27 +591,68 @@ function initSwipeTabs() {
     const touch = event.touches[0];
     swipeStartX = touch.clientX;
     swipeStartY = touch.clientY;
+    swipeLastX = swipeStartX;
     swipeStartTime = Date.now();
+    swipeMode = "pending";
+    swipeWidth = area.clientWidth || window.innerWidth;
+    swipeBaseX = -getActiveTabIndex() * swipeWidth;
+    swipeTracking = true;
+    const track = document.getElementById("panelTrack");
+    if (track) track.classList.remove("is-animating");
   }, { passive: true });
-  area.addEventListener("touchend", event => {
-    if (!swipeStartTime) return;
-    if (isUserEditing() || isSwipeIgnoredTarget(event.target)) {
-      swipeStartTime = 0;
+
+  area.addEventListener("touchmove", event => {
+    if (!swipeTracking || !swipeStartTime || event.touches.length !== 1) return;
+    if (isUserEditing()) {
+      swipeTracking = false;
+      updatePanelPosition(true);
       return;
     }
-    const touch = event.changedTouches[0];
+    const touch = event.touches[0];
     const dx = touch.clientX - swipeStartX;
     const dy = touch.clientY - swipeStartY;
+    swipeLastX = touch.clientX;
+
+    if (swipeMode === "pending") {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx) * 1.15) {
+        swipeMode = "vertical";
+        swipeTracking = false;
+        updatePanelPosition(true);
+        return;
+      }
+      if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.15) {
+        swipeMode = "horizontal";
+      } else {
+        return;
+      }
+    }
+    if (swipeMode !== "horizontal") return;
+    event.preventDefault();
+    const adjustedDx = clampSwipeDelta(dx);
+    setTrackTranslate(swipeBaseX + adjustedDx, false);
+  }, { passive: false });
+
+  area.addEventListener("touchend", event => {
+    if (!swipeStartTime) return;
     const elapsed = Date.now() - swipeStartTime;
+    const dx = swipeLastX - swipeStartX;
+    const mode = swipeMode;
     swipeStartTime = 0;
-
-    const horizontalEnough = Math.abs(dx) >= 70;
-    const verticalSmall = Math.abs(dy) <= 45;
-    const quickEnough = elapsed <= 800;
-    if (!horizontalEnough || !verticalSmall || !quickEnough) return;
-
-    switchTabBySwipe(dx < 0 ? "left" : "right");
+    swipeTracking = false;
+    swipeMode = "";
+    if (mode === "horizontal") finishSwipe(dx, elapsed);
+    else updatePanelPosition(true);
   }, { passive: true });
+
+  area.addEventListener("touchcancel", () => {
+    swipeStartTime = 0;
+    swipeTracking = false;
+    swipeMode = "";
+    updatePanelPosition(true);
+  }, { passive: true });
+
+  window.addEventListener("resize", () => updatePanelPosition(false));
+  updatePanelPosition(false);
 }
 
 renderAll();

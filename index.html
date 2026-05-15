@@ -6,7 +6,7 @@
   <title>4人麻雀 成績記録</title>
   <link rel="icon" type="image/png" href="header-chu.png" />
   <link rel="apple-touch-icon" href="header-chu.png" />
-  <link rel="stylesheet" href="style.css?v=1" />
+  <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
   <div class="app">
@@ -26,6 +26,7 @@
     </div>
 
     <main class="scroll-area" id="scrollArea">
+      <div id="panelTrack" class="panel-track">
       <section id="inputPanel" class="panel active">
         <div class="sheet-toolbar compact-card">
           <button class="add-game-button" onclick="addGameToSelectedDate()">対局追加</button>
@@ -61,12 +62,13 @@
           </table>
         </div>
       </section>
+      </div>
     </main>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js?v=1"></script>
-  <script src="script.js?v=1"></script>
+  <script src="firebase-config.js?v=2"></script>
+  <script src="script.js?v=2"></script>
 </body>
 </html>
