@@ -12,6 +12,15 @@ let currentPage = Math.max(1, Math.ceil(games.length / PAGE_SIZE));
 let dateCurrentPage = 1;
 let activeTab = "input";
 let localEditUntil = 0;
+let lastPointerDownAt = 0;
+
+window.addEventListener("pointerdown", () => {
+  lastPointerDownAt = Date.now();
+}, { passive: true });
+
+function wasRecentPointerAction() {
+  return Date.now() - lastPointerDownAt < 500;
+}
 
 function markLocalEditing() {
   localEditUntil = Date.now() + 3000;
@@ -375,6 +384,20 @@ function focusNextInputOfKind(currentInput, kind, backwards = false) {
   return false;
 }
 
+function handleScoreBlur(gameIndex, playerIndex, input) {
+  updateScoreValue(gameIndex, playerIndex, input, true);
+
+  // iPhone Safari のキーボード「次へ」は keydown/Tab/Enter を発火しないことがあるため、
+  // 画面タップではない blur の場合だけ、次の点数欄へ明示的にフォーカスを移します。
+  if (!wasRecentPointerAction()) {
+    setTimeout(() => {
+      const currentActive = document.activeElement;
+      if (currentActive && currentActive.dataset && currentActive.dataset.tabKind === "score") return;
+      focusNextInputOfKind(input, "score", false);
+    }, 30);
+  }
+}
+
 function handleScoreKeydown(event, gameIndex, playerIndex) {
   if (event.key === "Tab") {
     handleTabMove(event, "score");
@@ -457,29 +480,46 @@ function renderGames() {
         <div class="header-cell">成績</div>
     `;
 
-    calculated.players.forEach((p, playerIndex) => {
+    const playerRows = calculated.players.map((p, playerIndex) => {
       const nameTabIndex = offset * 8 + playerIndex + 1;
       const scoreTabIndex = offset * 8 + 4 + playerIndex + 1;
       const rawScore = games[gameIndex].players[playerIndex].score;
       const parsedRawScore = parseNumber(rawScore);
       const displayScore = Number.isFinite(parsedRawScore) ? formatNumber(parsedRawScore) : "";
       const scoreClass = Number.isFinite(parsedRawScore) && parsedRawScore < 0 ? "negative-input" : "";
-      html += `
-        <input type="text" data-tab-kind="name" tabindex="${nameTabIndex}" enterkeyhint="next" value="${escapeHtml(p.name || "")}" placeholder="名前"
+      const row = playerIndex + 2;
+      return { p, playerIndex, nameTabIndex, scoreTabIndex, displayScore, scoreClass, row };
+    });
+
+    // iPhone Safari の「次へ」はDOM順で移動しやすいため、
+    // 見た目は行単位のまま、DOM順は「名前4つ → 点数4つ → 表示欄」にする。
+    html += playerRows.map(({ p, playerIndex, nameTabIndex, row }) => `
+        <input style="grid-column:1; grid-row:${row};" type="text" data-tab-kind="name" tabindex="${nameTabIndex}" enterkeyhint="next" value="${escapeHtml(p.name || "")}" placeholder="名前"
           oninput="updateName(${gameIndex}, ${playerIndex}, this.value)"
           onblur="commitName(${gameIndex}, ${playerIndex}, this.value)"
           onkeydown="handleTabMove(event, 'name')">
-        <input type="text" inputmode="numeric" pattern="[0-9,\-]*" data-tab-kind="score" data-score-index="${playerIndex}" tabindex="${scoreTabIndex}" enterkeyhint="next" class="${scoreClass}"
+      `).join("");
+
+    html += playerRows.map(({ playerIndex, scoreTabIndex, displayScore, scoreClass, row }) => `
+        <input style="grid-column:2; grid-row:${row};" type="text" autocomplete="off" autocorrect="off" data-tab-kind="score" data-score-index="${playerIndex}" tabindex="${scoreTabIndex}" enterkeyhint="next" class="${scoreClass}"
           value="${displayScore}" placeholder="30,000"
           onfocus="this.value = this.value.replace(/,/g, '')"
           oninput="updateScoreValue(${gameIndex}, ${playerIndex}, this, false)"
-          onblur="updateScoreValue(${gameIndex}, ${playerIndex}, this, true)"
+          onblur="handleScoreBlur(${gameIndex}, ${playerIndex}, this)"
           onkeydown="handleScoreKeydown(event, ${gameIndex}, ${playerIndex})">
-        <div class="readonly-cell rank-cell" data-rank-index="${playerIndex}">${p.rank ? `${p.rank}位` : ""}</div>
-        <div class="readonly-cell ${signedClass(p.diff1000)}" data-diff-index="${playerIndex}">${signedText(p.diff1000)}</div>
-        <div class="readonly-cell ${signedClass(p.result)}" data-result-index="${playerIndex}">${signedText(p.result)}</div>
-      `;
-    });
+      `).join("");
+
+    html += playerRows.map(({ p, playerIndex, row }) => `
+        <div style="grid-column:3; grid-row:${row};" class="readonly-cell rank-cell" data-rank-index="${playerIndex}">${p.rank ? `${p.rank}位` : ""}</div>
+      `).join("");
+
+    html += playerRows.map(({ p, playerIndex, row }) => `
+        <div style="grid-column:4; grid-row:${row};" class="readonly-cell ${signedClass(p.diff1000)}" data-diff-index="${playerIndex}">${signedText(p.diff1000)}</div>
+      `).join("");
+
+    html += playerRows.map(({ p, playerIndex, row }) => `
+        <div style="grid-column:5; grid-row:${row};" class="readonly-cell ${signedClass(p.result)}" data-result-index="${playerIndex}">${signedText(p.result)}</div>
+      `).join("");
 
     html += `</div>`;
     div.innerHTML = html;
