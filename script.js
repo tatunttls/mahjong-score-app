@@ -1,6 +1,5 @@
 const ORIGIN_POINT = 30000;
 const TOTAL_POINT = 100000;
-const BUILD_VERSION = "v18";
 
 let games = JSON.parse(localStorage.getItem("mahjongGames")) || [];
 let dateRates = JSON.parse(localStorage.getItem("mahjongDateRates")) || {};
