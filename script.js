@@ -11,6 +11,15 @@ let remoteSaveTimer = null;
 let currentPage = Math.max(1, Math.ceil(games.length / PAGE_SIZE));
 let dateCurrentPage = 1;
 let activeTab = "input";
+let localEditUntil = 0;
+
+function markLocalEditing() {
+  localEditUntil = Date.now() + 3000;
+}
+
+function isLocalEditWindow() {
+  return Date.now() < localEditUntil;
+}
 
 function isFirebaseConfigFilled(config) {
   return !!(config && config.apiKey && config.projectId && config.appId);
@@ -97,6 +106,7 @@ function saveRates(options = {}) {
 }
 
 function isUserEditing() {
+  if (isLocalEditWindow()) return true;
   const el = document.activeElement;
   if (!el) return false;
   const tag = el.tagName ? el.tagName.toLowerCase() : "";
@@ -253,14 +263,22 @@ function setDatePage(page) {
 }
 
 function updateName(gameIndex, playerIndex, value) {
+  markLocalEditing();
   games[gameIndex].players[playerIndex].name = value;
-  saveGames();
+  localStorage.setItem("mahjongGames", JSON.stringify(games));
+}
+
+function commitName(gameIndex, playerIndex, value) {
+  markLocalEditing();
+  games[gameIndex].players[playerIndex].name = value;
+  saveGames({ immediate: true });
   renderSummary();
   dateCurrentPage = Math.max(1, Math.ceil(getDateSummaries().length / PAGE_SIZE));
   renderDateSummary();
 }
 
 function updateDate(gameIndex, value) {
+  markLocalEditing();
   games[gameIndex].date = value;
   saveGames();
   dateCurrentPage = Math.max(1, Math.ceil(getDateSummaries().length / PAGE_SIZE));
@@ -268,18 +286,29 @@ function updateDate(gameIndex, value) {
 }
 
 function updateMemo(gameIndex, value) {
+  markLocalEditing();
   games[gameIndex].memo = value;
-  saveGames();
+  localStorage.setItem("mahjongGames", JSON.stringify(games));
+}
+
+function commitMemo(gameIndex, value) {
+  markLocalEditing();
+  games[gameIndex].memo = value;
+  saveGames({ immediate: true });
 }
 
 function updateScoreValue(gameIndex, playerIndex, input, shouldFormat = false) {
+  markLocalEditing();
   const raw = input.value.replace(/,/g, "");
   games[gameIndex].players[playerIndex].score = raw;
-  saveGames();
+  localStorage.setItem("mahjongGames", JSON.stringify(games));
   updateSingleGameCalculations(gameIndex);
-  renderSummary();
-  renderDateSummary();
-  if (shouldFormat) formatScoreInput(input, gameIndex, playerIndex);
+  if (shouldFormat) {
+    formatScoreInput(input, gameIndex, playerIndex);
+    saveGames({ immediate: true });
+    renderSummary();
+    renderDateSummary();
+  }
 }
 
 function formatScoreInput(input, gameIndex, playerIndex) {
@@ -397,7 +426,7 @@ function renderGames() {
           <input class="date-input" type="date" value="${game.date || ""}" onchange="updateDate(${gameIndex}, this.value)">
           <span class="game-title">対局 ${formatNumber(getGameNumberForDate(gameIndex))}</span>
         </div>
-        <input class="game-memo" type="text" value="${escapeHtml(game.memo || "")}" placeholder="メモ" oninput="updateMemo(${gameIndex}, this.value)">
+        <input class="game-memo" type="text" value="${escapeHtml(game.memo || "")}" placeholder="メモ" oninput="updateMemo(${gameIndex}, this.value)" onblur="commitMemo(${gameIndex}, this.value)">
         <div class="game-actions">
           <span class="total-status" data-total-status>${totalWarning}</span>
           <button class="danger" onclick="deleteGame(${gameIndex})">削除</button>
@@ -419,6 +448,7 @@ function renderGames() {
       html += `
         <input type="text" data-tab-kind="name" value="${escapeHtml(p.name || "")}" placeholder="名前"
           oninput="updateName(${gameIndex}, ${playerIndex}, this.value)"
+          onblur="commitName(${gameIndex}, ${playerIndex}, this.value)"
           onkeydown="handleTabMove(event, 'name')">
         <input type="text" inputmode="numeric" data-tab-kind="score" data-score-index="${playerIndex}" class="${scoreClass}"
           value="${displayScore}" placeholder="30,000"
@@ -476,14 +506,17 @@ function renderSummary() {
 }
 
 function updateRate(date, value) {
+  markLocalEditing();
   dateRates[date] = value.replace(/,/g, "");
-  saveRates();
+  localStorage.setItem("mahjongDateRates", JSON.stringify(dateRates));
 }
 
 function commitRate(date, input) {
+  markLocalEditing();
   updateRate(date, input.value);
   const rate = parseNumber(dateRates[date]) || 0;
   input.value = Number.isFinite(rate) ? formatNumber(rate) : "";
+  saveRates({ immediate: true });
   renderDateSummary();
 }
 
