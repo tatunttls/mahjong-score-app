@@ -32,11 +32,13 @@
           <label class="sheet-select-label">対局日
             <select id="dateSheetSelect" onchange="selectDateSheet(this.value)"></select>
           </label>
-          <button class="new-date-button" onclick="openNewDatePicker()">新規対局日</button>
-          <div id="newDateRow" class="new-date-row" hidden>
-            <input id="newDatePicker" class="new-date-input" type="date" onchange="createDateSheet(this.value)" />
-            <button type="button" class="date-create-button" onclick="createDateSheet(document.getElementById('newDatePicker').value)">作成</button>
-            <button type="button" class="date-cancel-button" onclick="closeNewDatePicker()">閉じる</button>
+          <div class="new-date-wrap">
+            <button class="new-date-button" onclick="openNewDatePicker()">新規対局日</button>
+            <div id="newDateRow" class="new-date-row" hidden>
+              <input id="newDatePicker" class="new-date-input" type="date" onchange="createDateSheet(this.value)" />
+              <button type="button" class="date-create-button" onclick="createDateSheet(document.getElementById('newDatePicker').value)">作成</button>
+              <button type="button" class="date-cancel-button" onclick="closeNewDatePicker()">閉じる</button>
+            </div>
           </div>
         </div>
         <div id="games"></div>
