@@ -217,7 +217,7 @@ function openNewDatePicker() {
   const picker = document.getElementById("newDatePicker");
   if (!row || !picker) return;
   row.hidden = false;
-  picker.value = selectedDate || todayString();
+  picker.value = todayString();
 
   // iPhone Safariでは非表示inputのshowPickerが反応しないことがあるため、
   // 日付入力欄を画面内に表示してからフォーカスする。
