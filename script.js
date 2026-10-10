@@ -1,13 +1,10 @@
 const ORIGIN_POINT = 30000;
 const TOTAL_POINT = 100000;
 
-let games = JSON.parse(localStorage.getItem("mahjongGames")) || [];
-let dateRates = JSON.parse(localStorage.getItem("mahjongDateRates")) || {};
-let dateNotes = JSON.parse(localStorage.getItem("mahjongDateNotes")) || {};
-let selectedDate = localStorage.getItem("mahjongSelectedDate") || "";
-let remoteDocRef = null;
-let isApplyingRemote = false;
-let isFirebaseReady = false;
+let games = [];
+let dateRates = Object.create(null);
+let dateNotes = Object.create(null);
+let selectedDate = "";
 let remoteSaveTimer = null;
 let activeTab = "input";
 let localEditUntil = 0;
@@ -30,74 +27,6 @@ function resetIOSZoomAfterInput() {
   setTimeout(() => window.scrollTo(window.scrollX, window.scrollY), 60);
 }
 
-function isFirebaseConfigFilled(config) { return !!(config && config.apiKey && config.projectId && config.appId); }
-function initFirebaseSync() {
-  const config = window.MAHJONG_FIREBASE_CONFIG;
-  if (!isFirebaseConfigFilled(config) || !window.firebase) return;
-  try {
-    firebase.initializeApp(config);
-    const db = firebase.firestore();
-    const docId = window.MAHJONG_FIREBASE_DOC_ID || "default";
-    remoteDocRef = db.collection("mahjongScoreApps").doc(docId);
-    isFirebaseReady = true;
-    remoteDocRef.onSnapshot(snapshot => {
-      if (!snapshot.exists) { persistRemoteData(); return; }
-      if (isUserEditing()) return;
-      const data = snapshot.data() || {};
-      isApplyingRemote = true;
-      games = Array.isArray(data.games) ? normalizeGames(data.games) : [];
-      dateRates = data.dateRates && typeof data.dateRates === "object" ? data.dateRates : {};
-      dateNotes = data.dateNotes && typeof data.dateNotes === "object" ? data.dateNotes : {};
-      localStorage.setItem("mahjongGames", JSON.stringify(games));
-      localStorage.setItem("mahjongDateRates", JSON.stringify(dateRates));
-      localStorage.setItem("mahjongDateNotes", JSON.stringify(dateNotes));
-      ensureSelectedDate();
-      renderAll();
-      isApplyingRemote = false;
-    }, error => {
-      console.error("Firebase sync error:", error);
-      alert("共有データの読み込みに失敗しました。Firebase設定またはFirestoreルールを確認してください。");
-    });
-  } catch (error) {
-    console.error("Firebase initialization error:", error);
-    alert("Firebaseの初期化に失敗しました。firebase-config.jsの設定を確認してください。");
-  }
-}
-function persistRemoteData() {
-  if (remoteSaveTimer) { clearTimeout(remoteSaveTimer); remoteSaveTimer = null; }
-  if (!isFirebaseReady || !remoteDocRef || isApplyingRemote) return;
-  return remoteDocRef.set({ games, dateRates, dateNotes, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
-    .catch(error => {
-      console.error("Firebase save error:", error);
-      alert("共有データの保存に失敗しました。ネットワークまたはFirestoreルールを確認してください。");
-    });
-}
-function scheduleRemoteSave() {
-  if (!isFirebaseReady || !remoteDocRef || isApplyingRemote) return;
-  if (remoteSaveTimer) clearTimeout(remoteSaveTimer);
-  remoteSaveTimer = setTimeout(() => persistRemoteData(), 800);
-}
-function saveGames(options = {}) {
-  localStorage.setItem("mahjongGames", JSON.stringify(games));
-  if (options.immediate) persistRemoteData(); else scheduleRemoteSave();
-}
-function saveRates(options = {}) {
-  localStorage.setItem("mahjongDateRates", JSON.stringify(dateRates));
-  if (options.immediate) persistRemoteData(); else scheduleRemoteSave();
-}
-function saveNotes(options = {}) {
-  localStorage.setItem("mahjongDateNotes", JSON.stringify(dateNotes));
-  if (options.immediate) persistRemoteData(); else scheduleRemoteSave();
-}
-
-function normalizeGames(list) {
-  return list.map((game, index) => ({
-    id: game.id || Date.now() + index,
-    createdAt: game.createdAt || game.id || Date.now() + index,
-    date: game.date || todayString(),
-    players: Array.isArray(game.players) ? game.players.slice(0, 4).map(p => ({ name: p.name || "", score: p.score ?? "" })) : ["","","" ,""].map(() => ({ name:"", score:"" }))
-  }));
-}
 function parseNumber(value) {
   if (value === null || value === undefined) return NaN;
   const cleaned = String(value).replace(/,/g, "").trim();
@@ -135,10 +64,9 @@ function uniqueDates() {
   return sortDatesDesc([...new Set(games.map(g => g.date || todayString()))]);
 }
 function ensureSelectedDate() {
-  games = normalizeGames(games);
   const dates = uniqueDates();
   if (!selectedDate || !dates.includes(selectedDate)) selectedDate = dates[0] || todayString();
-  localStorage.setItem("mahjongSelectedDate", selectedDate);
+
 }
 function selectedDateGames() {
   return games
@@ -245,11 +173,12 @@ function createDateSheet(date) {
   if (document.activeElement && typeof document.activeElement.blur === "function") document.activeElement.blur();
   if (!date) return;
   selectedDate = date;
-  localStorage.setItem("mahjongSelectedDate", selectedDate);
+
   if (!uniqueDates().includes(date)) {
     const names = getLastPlayersForDate(date);
-    games.push({ id: Date.now(), createdAt: Date.now(), date, players: names.map(name => ({ name, score: "" })) });
-    saveGames({ immediate: true });
+    const game = { id: newRecordId(), date, memo: "", players: names.map(name => ({ name, score: "" })) };
+    if (!enqueueRecord("create", game.id, game)) return;
+    applyRecordProjection(true);
   }
   closeNewDatePicker();
   switchTab("input");
@@ -259,7 +188,7 @@ function createDateSheet(date) {
 function selectDateSheet(date) {
   if (!date) return;
   selectedDate = date;
-  localStorage.setItem("mahjongSelectedDate", selectedDate);
+
   renderGames();
   scrollToTopSoon();
 }
@@ -272,41 +201,38 @@ function addGameToSelectedDate() {
     return;
   }
   const names = getLastPlayersForDate(selectedDate);
-  games.push({ id: Date.now(), createdAt: Date.now(), date: selectedDate, players: names.map(name => ({ name, score: "" })) });
-  saveGames({ immediate: true });
+  const game = { id: newRecordId(), date: selectedDate, memo: "", players: names.map(name => ({ name, score: "" })) };
+  if (!enqueueRecord("create", game.id, game)) return;
+  applyRecordProjection(true);
   renderAll();
   scrollToTopSoon();
 }
 function deleteGame(gameIndex) {
-  if (!confirm("この対局を削除しますか？")) return;
-  games.splice(gameIndex, 1);
-  saveGames({ immediate: true });
-  ensureSelectedDate();
-  renderAll();
+  const game = games[gameIndex];
+  if (!game || !confirm("この対局をごみ箱へ移動しますか？ あとから戻せます。")) return;
+  if (enqueueRecord("archive", game.id, true)) applyRecordProjection(true);
 }
 
 function updateName(gameIndex, playerIndex, value) {
   markLocalEditing();
-  games[gameIndex].players[playerIndex].name = value;
-  localStorage.setItem("mahjongGames", JSON.stringify(games));
+  editRecordGame(gameIndex, `players.${playerIndex}.name`, value);
 }
 function commitName(gameIndex, playerIndex, value) {
   resetIOSZoomAfterInput();
   markLocalEditing();
-  games[gameIndex].players[playerIndex].name = value;
-  saveGames({ immediate: true });
+  editRecordGame(gameIndex, `players.${playerIndex}.name`, value);
+  flushRecordQueue();
   renderSummary();
   renderDateSummary();
 }
 function updateScoreValue(gameIndex, playerIndex, input, shouldFormat = false) {
   markLocalEditing();
   const raw = input.value.replace(/,/g, "");
-  games[gameIndex].players[playerIndex].score = raw;
-  localStorage.setItem("mahjongGames", JSON.stringify(games));
+  if (!editRecordGame(gameIndex, `players.${playerIndex}.score`, raw)) return;
   updateSingleGameCalculations(gameIndex);
   if (shouldFormat) {
     formatScoreInput(input, gameIndex, playerIndex);
-    saveGames({ immediate: true });
+    flushRecordQueue();
     renderSummary();
     renderDateSummary();
   }
@@ -423,7 +349,7 @@ function renderGames() {
         </div>
         <div class="game-actions">
           <span class="total-status" data-total-status>${totalWarning}</span>
-          <button class="danger" onclick="deleteGame(${gameIndex})">削除</button>
+          <button class="danger" onclick="deleteGame(${gameIndex})">ごみ箱へ</button>
         </div>
       </div>
       <div class="player-grid">
@@ -456,7 +382,7 @@ function renderGames() {
 }
 
 function buildPersonalSummary() {
-  const summary = {};
+  const summary = Object.create(null);
   games.forEach(game => {
     const calculated = ensureCalculatedGame(game);
     calculated.players.forEach(p => {
@@ -479,8 +405,8 @@ function renderSummary() {
 }
 function updateRate(date, value) {
   markLocalEditing();
-  dateRates[date] = value.replace(/,/g, "");
-  localStorage.setItem("mahjongDateRates", JSON.stringify(dateRates));
+  const raw = value.replace(/,/g, "");
+  if (dateRates[date] !== raw && enqueueRecord("rate", date, raw)) dateRates[date] = raw;
 }
 function commitRate(date, input) {
   resetIOSZoomAfterInput();
@@ -488,14 +414,14 @@ function commitRate(date, input) {
   updateRate(date, input.value);
   const rate = parseNumber(dateRates[date]) || 0;
   input.value = Number.isFinite(rate) ? formatNumber(rate) : "";
-  saveRates({ immediate: true });
+  flushRecordQueue();
   renderDateSummary();
 }
 function getDateSummaries() {
-  const byDate = {};
+  const byDate = Object.create(null);
   games.forEach(game => {
     const date = game.date || todayString();
-    if (!byDate[date]) byDate[date] = {};
+    if (!byDate[date]) byDate[date] = Object.create(null);
     const calculated = ensureCalculatedGame(game);
     calculated.players.forEach(p => {
       const name = (p.name || "").trim();
@@ -510,13 +436,12 @@ function getDateSummaries() {
 
 function updateDateNote(date, value) {
   markLocalEditing();
-  dateNotes[date] = value;
-  saveNotes();
+  if (dateNotes[date] !== value && enqueueRecord("note", date, value)) dateNotes[date] = value;
 }
 function commitDateNote(date, input) {
   markLocalEditing();
-  dateNotes[date] = input.value;
-  saveNotes({ immediate: true });
+  updateDateNote(date, input.value);
+  flushRecordQueue();
   resetIOSZoomAfterInput();
 }
 
@@ -655,6 +580,6 @@ function initSwipeTabs() {
   updatePanelPosition(false);
 }
 
-renderAll();
+initRecordStorage();
 initSwipeTabs();
 initFirebaseSync();

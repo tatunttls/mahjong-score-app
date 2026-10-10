@@ -1272,3 +1272,18 @@ html, body {
 .panel.active {
   pointer-events: auto;
 }
+
+/* Record protection controls */
+.save-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px; font-size:12px; color:var(--accent-dark); }
+.save-warning { color:var(--danger); }
+.record-tools { margin:4px 0 8px; border:1px solid var(--line); background:white; border-radius:10px; padding:10px; font-size:12px; }
+.record-tools summary { cursor:pointer; font-weight:700; padding:4px 0; }
+.record-tools p { line-height:1.6; color:var(--muted); }
+.backup-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.import-button { cursor:pointer; display:inline-flex; align-items:center; background:var(--accent); color:white; border-radius:7px; padding:7px; font-weight:700; }
+.import-button input { width:170px; max-width:100%; margin-left:8px; color:white; background:transparent; font-size:11px; }
+.record-row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--line); }
+.record-row span { min-width:0; overflow-wrap:anywhere; }
+.record-row small { color:var(--muted); }
+.record-row button { flex-shrink:0; }
+#historyList { max-height:360px; overflow:auto; }

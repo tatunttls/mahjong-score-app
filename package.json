@@ -1,0 +1,14 @@
+{
+  "name": "mahjong-score-app-record-protection",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node tests/storage.test.cjs",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-mahjong-record-protection \"node --test tests/firestore.rules.test.cjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.0.0",
+    "firebase-tools": "15.33.0"
+  }
+}
