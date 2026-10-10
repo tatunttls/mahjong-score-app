@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function validPlayer(p) {
+      return p is map && p.keys().hasAll(['name', 'score']) &&
+        p.keys().hasOnly(['name', 'score']) &&
+        p.name is string && p.name.size() <= 200 &&
+        p.score is string && p.score.size() <= 40;
+    }
+    function validGame(g, target) {
+      return g is map && g.keys().hasAll(['id', 'date', 'memo', 'players']) &&
+        g.keys().hasOnly(['id', 'date', 'memo', 'players']) &&
+        g.id == target && g.date is string && g.date.size() <= 40 &&
+        g.memo is string && g.memo.size() <= 2000 &&
+        g.players is list && g.players.size() == 4 &&
+        validPlayer(g.players[0]) && validPlayer(g.players[1]) &&
+        validPlayer(g.players[2]) && validPlayer(g.players[3]);
+    }
+    function validEvent(e, eventId) {
+      return e.keys().hasAll(['version', 'id', 'client', 'clock', 'time', 'kind', 'target', 'field', 'value']) &&
+        e.keys().hasOnly(['version', 'id', 'client', 'clock', 'time', 'kind', 'target', 'field', 'value']) &&
+        e.version == 11 && e.id == eventId && eventId.matches('^[a-zA-Z0-9_-]{1,100}$') &&
+        e.client is string && e.client.size() <= 100 &&
+        e.clock is int && e.clock > 0 && e.clock <= 9007199254740991 &&
+        e.time is int && e.time > 0 && e.time <= 9007199254740991 &&
+        e.target is string && e.field is string && (
+          ((e.kind == 'rate' || e.kind == 'note') && e.field == '' &&
+            e.target.matches('^([0-9]{4}-[0-9]{2}-[0-9]{2}|日付なし)$') &&
+            e.value is string && e.value.size() <= (e.kind == 'note' ? 2000 : 40)) ||
+          (e.target.matches('^[a-zA-Z0-9_-]{1,100}$') && (
+            (e.kind == 'create' && e.field == '' && validGame(e.value, e.target)) ||
+            (e.kind == 'archive' && e.field == '' && e.value is bool) ||
+            (e.kind == 'edit' && e.value is string && (
+              (e.field == 'memo' && e.value.size() <= 2000) ||
+              (e.field.matches('^players[.][0-3][.]name$') && e.value.size() <= 200) ||
+              ((e.field == 'date' || e.field.matches('^players[.][0-3][.]score$')) && e.value.size() <= 40)
+            ))
+          ))
+        );
+    }
+    // Old clients can no longer overwrite or delete the old shared snapshot.
+    match /mahjongScoreApps/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // History documents are create-only: no client can replace/delete them.
+    match /mahjongScoreAppsV11/{boardId}/events/{eventId} {
+      allow read: if boardId == 'default';
+      allow create: if boardId == 'default' && validEvent(request.resource.data, eventId);
+      allow update, delete: if false;
+    }
+  }
+}

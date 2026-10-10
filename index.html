@@ -6,7 +6,7 @@
   <title>4人麻雀 成績記録</title>
   <link rel="icon" type="image/png" href="header-chu.png" />
   <link rel="apple-touch-icon" href="header-chu.png" />
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=20261010" />
 </head>
 <body>
   <div class="app">
@@ -23,6 +23,7 @@
         <button id="tabDate" onclick="switchTab('date')">日付別成績</button>
         <button id="tabPersonal" onclick="switchTab('personal')">個人成績</button>
       </nav>
+      <div class="save-bar"><span id="saveStatus" role="status" aria-live="polite">保存先を確認中…</span><button onclick="flushRecordQueue()">再送信</button></div>
     </div>
 
     <main class="scroll-area" id="scrollArea">
@@ -42,6 +43,12 @@
             </div>
           </div>
         </div>
+        <details class="record-tools"><summary>記録を守る・ごみ箱（<span id="trashCount">0</span>件）</summary>
+      <div class="backup-actions"><button onclick="exportRecordBackup()">バックアップを書き出す</button><label class="import-button">バックアップを読み込む<input type="file" accept=".json,application/json" onchange="importRecordBackup(this)"></label></div>
+      <p>変更履歴を残して保存しています。ごみ箱の対局も戻せます。端末の故障に備え、ときどきバックアップを書き出してください。</p>
+      <h3>ごみ箱</h3><div id="trashList"></div>
+      <details><summary>変更履歴（最新100件）</summary><p>同じ項目を複数人で変更した場合も、過去の変更を取り消せます。</p><div id="historyList"></div></details>
+    </details>
         <div id="games"></div>
       </section>
 
@@ -68,7 +75,9 @@
 
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js?v=2"></script>
-  <script src="script.js?v=3"></script>
+  <script src="firebase-config.js?v=20261010"></script>
+  <script src="record-store.js?v=20261010"></script>
+  <script src="safe-sync.js?v=20261010"></script>
+  <script src="script.js?v=20261010"></script>
 </body>
 </html>

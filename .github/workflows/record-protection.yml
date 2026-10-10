@@ -1,0 +1,24 @@
+name: Record protection checks
+on:
+  pull_request:
+  push:
+    branches: [main, codex/protect-mahjong-records]
+permissions:
+  contents: read
+jobs:
+  storage-and-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - run: npm run test:rules
